@@ -1,0 +1,44 @@
+---
+- hosts: ubuntu_vm
+  become: yes
+  tasks:
+    - name: Mis à jour des paquets
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Installer les dépendances neccessaire
+      apt:
+        name: 
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+
+    - name: Ajouter la clé Docker GPG
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajouter le dossier Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Installation de Docker
+      apt:
+        name: docker-ce
+        state: latest
+
+    - name: Ajouter un user au docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: activer et lancer le service docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
